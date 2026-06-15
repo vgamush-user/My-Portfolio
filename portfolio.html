@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Amuthavel's Portfolio</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #050508;
+            color: #f3f4f6;
+            overflow-x: hidden;
+            overflow-y: hidden; /* Kept locked until the doors completely open */
+            min-height: 100vh;
+        }
+
+        /* Fixed Background 3D Canvas Space */
+        #canvas-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 1;
+        }
+
+        /* Intro Portal Overlay Screen */
+        #intro-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 10;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background: linear-gradient(to bottom, rgba(5,5,8,0.2), rgba(5,5,8,0.7));
+            transition: opacity 1.5s ease-out, visibility 1.5s;
+        }
+
+        #intro-overlay.fade-out {
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+        }
+
+        .intro-title {
+            font-size: 3rem;
+            font-weight: 800;
+            letter-spacing: 4px;
+            margin-bottom: 2rem;
+            text-align: center;
+            background: linear-gradient(45deg, #00f2fe, #4facfe);
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* Button Group Wrapper */
+        .intro-actions {
+            display: flex;
+            gap: 1.5rem;
+        }
+
+        /* Sticky Navigation Social Connect Dock */
+        .social-dock {
+            position: fixed;
+            top: 2rem;
+            right: 2rem;
+            z-index: 5;
+            display: flex;
+            gap: 1.2rem;
+            opacity: 0;
+            transform: translateY(-20px);
+            transition: all 1.5s cubic-bezier(0.25, 1, 0.5, 1) 1.5s;
+        }
+
+        .social-dock.reveal {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .dock-link {
+            color: #9ca3af;
+            font-size: 1.4rem;
+            text-decoration: none;
+            width: 45px;
+            height: 45px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            background: rgba(5, 5, 8, 0.6);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .dock-link:hover {
+            color: #00f2fe;
+            border-color: #00f2fe;
+            box-shadow: 0 0 15px rgba(0, 242, 254, 0.4);
+            transform: translateY(-3px);
+        }
+
+        /* Sequential Content Container */
+        #portfolio-content {
+            position: relative;
+            z-index: 2;
+            width: 100%;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 0 2rem;
+            opacity: 0;
+            transform: translateY(60px);
+            transition: all 2s cubic-bezier(0.25, 1, 0.5, 1) 1.2s;
+            pointer-events: none;
+        }
+
+        #portfolio-content.reveal {
+            opacity: 1;
+            transform: translateY(0);
+            pointer-events: auto;
+        }
+
+        /* Structural Page Sections */
+        .profile-header {
+            min-height: 90vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding-top: 4rem;
+        }
+
+        h1 {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            line-height: 1.2;
+        }
+
+        h1 span { color: #00f2fe; }
+        
+        .lead-text {
+            color: #9ca3af;
+            line-height: 1.7;
+            font-size: 1.2rem;
+            max-width: 650px;
+            margin-bottom: 1.5rem;
+        }
+
+        /* Dedicated container for inner profile actions */
+        .profile-actions {
+            margin-bottom: 3rem;
+        }
+
+        .scroll-indicator {
+            color: #00f2fe;
+            font-size: 0.9rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            animation: bounce 2s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+            40% { transform: translateY(-10px); }
+            60% { transform: translateY(-5px); }
+        }
+
+        section {
+            padding: 5rem 0;
+            min-height: 60vh;
+        }
+
+        h2 {
+            font-size: 2.2rem;
+            margin-bottom: 2.5rem;
+            color: #fff;
+            position: relative;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid rgba(0, 242, 254, 0.2);
+        }
+
+        /* Skills Matrix Showcase */
+        .skills-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .skill-group {
+            background: rgba(255, 255, 255, 0.01);
+            border: 1px solid rgba(255, 255, 255, 0.03);
+            padding: 1.5rem;
+            border-radius: 8px;
+            box-shadow: inset 0 0 15px rgba(0, 242, 254, 0.02);
+        }
+
+        .skill-group h3 {
+            font-size: 1.1rem;
+            color: #00f2fe;
+            margin-bottom: 1rem;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+
+        .skill-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .skill-tag {
+            background: rgba(79, 172, 254, 0.08);
+            border: 1px solid rgba(79, 172, 254, 0.2);
+            color: #f3f4f6;
+            padding: 0.4rem 0.8rem;
+            font-size: 0.85rem;
+            border-radius: 4px;
+            transition: all 0.3s ease;
+        }
+
+        .skill-tag:hover {
+            background: #00f2fe;
+            color: #050508;
+            box-shadow: 0 0 10px rgba(0, 242, 254, 0.4);
+            transform: translateY(-2px);
+        }
+
+        /* Education & Responsibility Timeline Interface */
+        .timeline {
+            position: relative;
+            padding-left: 2rem;
+            border-left: 2px solid rgba(79, 172, 254, 0.3);
+            display: flex;
+            flex-direction: column;
+            gap: 3.5rem;
+        }
+
+        .timeline-item {
+            position: relative;
+        }
+
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: calc(-2rem - 6px);
+            top: 6px;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background-color: #00f2fe;
+            box-shadow: 0 0 12px #00f2fe;
+        }
+
+        .timeline-date {
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: #00f2fe;
+            letter-spacing: 1px;
+            margin-bottom: 0.3rem;
+        }
+
+        .timeline-title {
+            font-size: 1.4rem;
+            color: #fff;
+            margin-bottom: 0.25rem;
+        }
+
+        .timeline-institution {
+            font-size: 1.05rem;
+            color: #4facfe;
+            font-style: italic;
+            margin-bottom: 0.75rem;
+        }
+
+        .timeline-desc {
+            color: #9ca3af;
+            font-size: 1rem;
+            line-height: 1.6;
+            max-width: 700px;
+        }
+
+        /* Highlight text for key highlights inside descriptions */
+        .highlight-text {
+            color: #00f2fe;
+            font-weight: 500;
+        }
+
+        /* Featured Projects Interface */
+        .project-list {
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-left: 4px solid #00f2fe;
+            padding: 2rem;
+            border-radius: 0 12px 12px 0;
+            transition: transform 0.3s ease, background 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateX(8px);
+            background: rgba(255, 255, 255, 0.04);
+        }
+
+        .card h3 {
+            font-size: 1.5rem;
+            margin-bottom: 0.75rem;
+            color: #f3f4f6;
+        }
+
+        .card p {
+            color: #9ca3af;
+            font-size: 1rem;
+            line-height: 1.6;
+        }
+
+        /* Connect / Footer Unit */
+        .connect-footer {
+            padding: 4rem 0 6rem 0;
+            text-align: center;
+            border-top: 1px solid rgba(255, 255, 255, 0.03);
+        }
+
+        .connect-footer p {
+            color: #9ca3af;
+            margin-bottom: 1.5rem;
+            font-size: 1.05rem;
+        }
+
+        .footer-socials {
+            display: flex;
+            justify-content: center;
+            gap: 1.5rem;
+        }
+
+        /* Action Entry Button Style */
+        .btn {
+            display: inline-block;
+            padding: 1rem 2.5rem;
+            background: transparent;
+            border: 2px solid #00f2fe;
+            color: #00f2fe;
+            text-decoration: none;
+            font-weight: 600;
+            letter-spacing: 1px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn:hover {
+            background: #00f2fe;
+            color: #050508;
+            box-shadow: 0 0 20px rgba(0, 242, 254, 0.6);
+        }
+        
+        /* Secondary Action UI variant */
+        .btn-alt {
+            border-color: #4facfe;
+            color: #4facfe;
+        }
+        
+        .btn-alt:hover {
+            background: #4facfe;
+            color: #050508;
+            box-shadow: 0 0 20px rgba(79, 172, 254, 0.6);
+        }
+    </style>
+</head>
+<body>
+
+    <div id="canvas-container"></div>
+
+    <nav class="social-dock" id="global-socials">
+        <a href="https://github.com/vgamush-user" target="_blank" class="dock-link" title="GitHub Profile"><i class="fa-brands fa-github"></i></a>
+        <a href="https://linkedin.com/in/amuthavel-vignesh-v-346a34371" target="_blank" class="dock-link" title="LinkedIn Profile"><i class="fa-brands fa-linkedin-in"></i></a>
+        <a href="mailto:vgamush@gmail.com" class="dock-link" title="Send Email"><i class="fa-solid fa-envelope"></i></a>
+    </nav>
+
+    <div id="intro-overlay">
+        <h2 class="intro-title">WELCOME TO MY PORTFOLIO</h2>
+        <div class="intro-actions">
+            <button class="btn" id="enter-btn">ENTER</button>
+        </div>
+    </div>
+
+    <div id="portfolio-content">
+        
+        <header class="profile-header">
+            <h1>Amuthavel<br><span>Vignesh</span></h1>
+            <p class="lead-text">Hello all, I am an AI Enthusiast.</p>
+            
+            <div class="profile-actions">
+                <button class="btn btn-alt" id="resume-btn"><i class="fa-solid fa-file-pdf" style="margin-right: 8px;"></i> View Resume</button>
+            </div>
+
+            <div class="scroll-indicator">↓ Scroll to explore background</div>
+        </header>
+
+        <section id="skills-section">
+            <h2>Technical Core</h2>
+            <div class="skills-container">
+                <div class="skill-group">
+                    <h3>Intelligence Frameworks</h3>
+                    <div class="skill-tags">
+                        <span class="skill-tag">Pytorch</span>
+                        <span class="skill-tag">Tensorflow</span>
+                        <span class="skill-tag">Scikit-Learn</span>
+                        <span class="skill-tag">LangChain</span>
+                        <span class="skill-tag">Pandas</span>
+                    </div>
+                </div>
+                <div class="skill-group">
+                    <h3>Development Stack</h3>
+                    <div class="skill-tags">
+                        <span class="skill-tag">HTML</span>
+                        <span class="skill-tag">CSS</span>
+                        <span class="skill-tag">JavaScript</span>
+                        <span class="skill-tag">Git &amp; GitHub</span>
+                        <span class="skill-tag">Vercel</span>
+                    </div>
+                </div>
+                <div class="skill-group">
+                    <h3>Mechanical Engineering</h3>
+                    <div class="skill-tags">
+                        <span class="skill-tag">Ansys</span>
+                        <span class="skill-tag">SolidWorks</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <section id="education-section">
+            <h2>Education History</h2>
+            <div class="timeline">
+                <div class="timeline-item">
+                    <div class="timeline-date">2025 - 2029</div>
+                    <h3 class="timeline-title">B.Tech in Production Engineering</h3>
+                    <div class="timeline-institution">National Institute of Technology, Calicut</div>
+                    <p class="timeline-desc">Specializing in designing CAD Models, further things are yet to be unravelled.</p>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-date">2025 - Present</div>
+                    <h3 class="timeline-title">Bachelor of Science (BS) in Data Science</h3>
+                    <div class="timeline-institution">Indian Institute of Technology, Madras</div>
+                    <p class="timeline-desc">Acquiring practical knowledge in App Development and ML.</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="responsibility-section">
+            <h2>Positions</h2>
+            <div class="timeline">
+                <div class="timeline-item">
+                    <div class="timeline-date">2026 - Present</div>
+                    <h3 class="timeline-title">Open Source Contributor and Ambassador</h3>
+                    <div class="timeline-institution">GirlScript Summer of Code (GSSoC '26)</div>
+                    <p class="timeline-desc">Selected as an open-source contributor focusing on contributing to  <span class="highlight-text"> Open-Source Projects</span> and <span class="highlight-text">AI Agent Tracks</span>, which helps in gaining knowledege in terms of bug fixing,restructuring descriptions and checking deployment.Also as a <span class="highlight-text">Campus Ambassador</span>,I helped people join this program</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="projects-section">
+            <h2>Project Work</h2>
+            <p>Coming Soon...</p>
+        </section>
+
+        <footer class="connect-footer">
+            <h2>Let's Connect</h2>
+            <p>Interested in collaborating? Don't forget to reach me out via</p>
+            <div class="footer-socials">
+                <a href="https://github.com/vgamush-user" target="_blank" class="btn" style="padding: 0.8rem 1.8rem; font-size: 0.9rem; margin: 0 0.5rem;"><i class="fa-brands fa-github" style="margin-right: 8px;"></i> GitHub</a>
+                <a href="https://linkedin.com/in/amuthavel-vignesh-v-346a34371" target="_blank" class="btn" style="padding: 0.8rem 1.8rem; font-size: 0.9rem; margin: 0 0.5rem;"><i class="fa-brands fa-linkedin-in" style="margin-right: 8px;"></i> LinkedIn</a>
+                <a href="mailto:vgamush@gmail.com" class="btn" style="padding: 0.8rem 1.8rem; font-size: 0.9rem; margin: 0 0.5rem;"><i class="fa-solid fa-envelope" style="margin-right: 8px;"></i> Email</a>
+            </div>
+        </footer>
+        
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+    <script>
+        // --- 1. Three.js Initialization ---
+        const container = document.getElementById('canvas-container');
+        const scene = new THREE.Scene();
+        scene.fog = new THREE.FogExp2(0x050508, 0.15);
+
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        camera.position.set(0, 0, 5);
+
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        container.appendChild(renderer.domElement);
+
+        // --- 2. Illumination ---
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.2);
+        scene.add(ambientLight);
+
+        const gateLight = new THREE.PointLight(0x00f2fe, 2, 10);
+        gateLight.position.set(0, 0, 1);
+        scene.add(gateLight);
+
+        // --- 3. 3D Double Doors Construction ---
+        const doorGroup = new THREE.Group();
+        scene.add(doorGroup);
+
+        const doorGeometry = new THREE.BoxGeometry(1.5, 4, 0.1);
+        const doorMaterial = new THREE.MeshStandardMaterial({
+            color: 0x111116,
+            roughness: 0.2,
+            metalness: 0.8
+        });
+
+        const leftDoor = new THREE.Mesh(doorGeometry, doorMaterial);
+        leftDoor.position.x = -0.75;
+        doorGroup.add(leftDoor);
+
+        const rightDoor = new THREE.Mesh(doorGeometry, doorMaterial);
+        rightDoor.position.x = 0.75;
+        doorGroup.add(rightDoor);
+
+        const frameGeom = new THREE.BoxGeometry(3.1, 4.1, 0.15);
+        const frameMat = new THREE.MeshBasicMaterial({ color: 0x00f2fe, wireframe: true });
+        const doorFrame = new THREE.Mesh(frameGeom, frameMat);
+        doorFrame.position.z = -0.01;
+        doorGroup.add(doorFrame);
+
+        // --- 4. Celestial Field Particles ---
+        const particleCount = 600;
+        const particleGeometry = new THREE.BufferGeometry();
+        const positions = new Float32Array(particleCount * 3);
+
+        for(let i = 0; i < particleCount * 3; i += 3) {
+            positions[i] = (Math.random() - 0.5) * 10;
+            positions[i+1] = (Math.random() - 0.5) * 10;
+            positions[i+2] = -Math.random() * 15 - 1; 
+        }
+
+        particleGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+        const particleMaterial = new THREE.PointsMaterial({
+            color: 0x4facfe,
+            size: 0.04,
+            transparent: true,
+            opacity: 0.8
+        });
+        const starField = new THREE.Points(particleGeometry, particleMaterial);
+        scene.add(starField);
+
+        // --- 5. Navigation & Animation Logic ---
+        let isTransitioning = false;
+        let transitionProgress = 0;
+
+        const enterBtn = document.getElementById('enter-btn');
+        const resumeBtn = document.getElementById('resume-btn');
+        const introOverlay = document.getElementById('intro-overlay');
+        const portfolioContent = document.getElementById('portfolio-content');
+        const globalSocials = document.getElementById('global-socials');
+
+        enterBtn.addEventListener('click', () => {
+            isTransitioning = true;
+            introOverlay.classList.add('fade-out');
+            portfolioContent.classList.add('reveal');
+            globalSocials.classList.add('reveal'); // Smoothly slide in dock icons
+            
+            setTimeout(() => {
+                document.body.style.overflowY = 'auto';
+            }, 1200);
+        });
+
+        // Interactive Response for Resume Action
+        resumeBtn.addEventListener('click', () => {
+            resumeBtn.innerHTML = '<i class="fa-solid fa-hourglass-half" style="margin-right: 8px;"></i> Coming Soon...';
+            resumeBtn.style.pointerEvents = "none";
+            resumeBtn.style.opacity = "0.7";
+        });
+
+        // --- 6. Execution Loop ---
+        const clock = new THREE.Clock();
+
+        const animate = () => {
+            requestAnimationFrame(animate);
+            const delta = clock.getDelta();
+
+            if (isTransitioning) {
+                transitionProgress += delta * 0.4;
+                if (transitionProgress > 1) transitionProgress = 1;
+
+                const ease = 1 - Math.pow(1 - transitionProgress, 3);
+
+                leftDoor.position.x = -0.75 - (ease * 1.8);
+                rightDoor.position.x = 0.75 + (ease * 1.8);
+                camera.position.z = 5 - (ease * 6.5);
+            } else {
+                const time = clock.getElapsedTime();
+                camera.position.y = Math.sin(time * 0.5) * 0.05;
+                camera.position.x = Math.cos(time * 0.5) * 0.05;
+            }
+
+            starField.rotation.z += 0.0005;
+            renderer.render(scene, camera);
+        };
+
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        animate();
+    </script>
+</body>
+</html>
